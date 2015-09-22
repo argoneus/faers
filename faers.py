@@ -66,7 +66,7 @@ for cat, grp in zip(categories, groupings):
 	header.collect()
 	tf_nohdr = tf.subtract(header)
 	# filter out lines with missing data, where number of fields < greatest field in map
-	badlines = tf_nohdr.filter(lambda l: len(l.split("$")) < maps[cat][-1] - 1)
+	badlines = tf_nohdr.filter(lambda l: len(l.split("$")) < maps[cat][-1] + 1)
 	badlines.collect()
 	tf_good = tf_nohdr.subtract(badlines)
 	scfiles[cat] = tf_good
