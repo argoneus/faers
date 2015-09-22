@@ -65,12 +65,25 @@ for cat, grp in zip(categories, groupings):
 	header = tf.filter(lambda l: l.startswith("primaryid") or l.startswith("ISR"))
 	header.collect()
 	tf_nohdr = tf.subtract(header)
-	scfiles[cat] = tf_nohdr
-	scparts[cat] = tf_nohdr.map(lambda l: l.split("$"))
+	# filter out lines with missing data, where number of fields < greatest field in map
+	badlines = tf_nohdr.filter(lambda l: len(l.split("$")) < maps[cat][-1] - 1)
+	badlines.collect()
+	tf_good = tf_nohdr.subtract(badlines)
+	scfiles[cat] = tf_good
+	scparts[cat] = tf_good.map(lambda l: l.split("$"))
 	scelements[cat] = scparts[cat].map(lambda p: (eval("".join(tuple("p[" + str(i) + "]," for i in maps[cat])))))
 	# specify fields via previously defined maps/schemas
 	fields = [StructField(field_name, StringType(), True) for field_name in schemas[cat[0:4]].split()]
 	schema = StructType(fields)
 	scschema[cat] = sqlContext.createDataFrame(scelements[cat], schema)
 	counts.append(tf_nohdr.count())
+
+# now combine partitions into original sources (DEMO, DRUG, etc.)
+demo = scschema['DEMO1'].unionAll(scschema['DEMO2']).unionAll(scschema['DEMO3']).unionAll(scschema['DEMO4'])
+drug = scschema['DRUG1'].unionAll(scschema['DRUG2']).unionAll(scschema['DRUG3'])
+indi = scschema['INDI1'].unionAll(scschema['INDI2'])
+outc = scschema['OUTC1'].unionAll(scschema['OUTC2'])
+reac = scschema['REAC1'].unionAll(scschema['REAC2']).unionAll(scschema['REAC3'])
+rpsr = scschema['RPSR1'].unionAll(scschema['RPSR2'])
+ther = scschema['THER1'].unionAll(scschema['THER2'])
 
