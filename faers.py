@@ -87,3 +87,10 @@ reac = scschema['REAC1'].unionAll(scschema['REAC2']).unionAll(scschema['REAC3'])
 rpsr = scschema['RPSR1'].unionAll(scschema['RPSR2'])
 ther = scschema['THER1'].unionAll(scschema['THER2'])
 
+# column counts
+demo.groupby('sex').count().sort('count', ascending = False).show()
+drug.groupby('drugname').count().sort('count', ascending = False).show()
+indi.groupby('indi_pt').count().sort('count', ascending = False).show()
+
+# joins
+drug.join(reac, drug.id == reac.id, 'inner').select(drug.drugname, reac.pt).limit(10).collect()
