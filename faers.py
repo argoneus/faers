@@ -1,4 +1,4 @@
-# Dr. Nicholas Davis, 9-18-15
+# Dr. Nicholas A. Davis, 9-18-15
 # Process FDA Adverse Event Reporting System (FAERS) data using Spark
 from pyspark.sql import SQLContext
 from pyspark.sql.types import *
