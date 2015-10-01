@@ -87,10 +87,21 @@ reac = scschema['REAC1'].unionAll(scschema['REAC2']).unionAll(scschema['REAC3'])
 rpsr = scschema['RPSR1'].unionAll(scschema['RPSR2'])
 ther = scschema['THER1'].unionAll(scschema['THER2'])
 
+# reset column types
+demo2 = demo.withColumn('age2', demo.age.cast('int'))\
+			.withColumn('weight2', demo.weight.cast('float'))
+
 # column counts
 demo.groupby('sex').count().sort('count', ascending = False).show()
 drug.groupby('drugname').count().sort('count', ascending = False).show()
 indi.groupby('indi_pt').count().sort('count', ascending = False).show()
+outc.groupby('outcome_code').count().sort('count', ascending = False).show()
 
-# joins
-drug.join(reac, drug.id == reac.id, 'inner').select(drug.drugname, reac.pt).limit(10).collect()
+# all AEs grouped by age
+agecounts = demo2.select(demo2.age2, demo2.age_unit).where(demo2.age_unit == "YR")\
+	.groupby('age2').count().sort('count', ascending = False)
+pd_agecounts = agecounts.toPandas()
+
+# join drug to outcome and select most frequently occurring pairs by count
+drug.join(outc, drug.id == outc.id).select(drug.drugname, outc.outcome_code)\
+		.groupby(['drugname', 'outcome_code']).count().sort('count', ascending = False).limit(10).collect()
